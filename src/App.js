@@ -1,5 +1,5 @@
 //App.js
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { ApolloProvider } from '@apollo/client';
 import client from './client';
 import './App.css';

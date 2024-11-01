@@ -1,14 +1,59 @@
 // ReviewForm.js
 
 import React, { useState } from 'react';
+import { useQuery, gql } from '@apollo/client';
+
+const GET_PEOPLE = gql`
+  query (
+	$includedType: B2cConnectionType
+	$excludedType: B2cConnectionType
+	$limit: Int
+  ) {
+	b2cConnections (
+  	includedType: $includedType
+  	excludedType: $excludedType
+  	limit: $limit
+	) {
+  	id
+  	type
+  	insertedAt
+  	updatedAt
+  	startedAt
+  	company {
+    	id
+        legalName
+  	}
+  	connectedUser {
+    	id
+        firstName
+        lastName
+        username
+  	}
+
+	}
+  }
+`;
+
 
 const ReviewForm = ({ onAddReview }) => {
   const [author, setAuthor] = useState('');
   const [comment, setComment] = useState('');
   const [rating, setRating] = useState(0);
 
+  const { loading, error, data } = useQuery(GET_PEOPLE);
+
+  if (loading) return <p>Loading...</p>;
+  if (error) return <p>Error: {error.message}</p>;
+
+  let customers = data.b2cConnections.map((conn) => {
+    return conn.connectedUser.firstName + ' ' + conn.connectedUser.lastName;
+  });
+
+//	console.log('cust', customers);
+
   const handleSubmit = (e) => {
     e.preventDefault();
+    if (Object.values(customers).find(val => val === author)) {
     const newReview = {
       author,
       comment,
@@ -18,8 +63,9 @@ const ReviewForm = ({ onAddReview }) => {
     setAuthor('');
     setComment('');
     setRating(0);
-
+    } else {
     alert("You must be a connected person to submit a review!");
+    }
   };
 
   return (
